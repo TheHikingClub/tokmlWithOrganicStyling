@@ -1,4 +1,4 @@
-Forked from https://github.com/mapbox/tokml
+Cloned from https://github.com/maphubs/tokml which was forked from https://github.com/mapbox/tokml
 
 # tokml
 
@@ -95,6 +95,26 @@ for the full document.
 **[simplestyle-spec](https://github.com/mapbox/simplestyle-spec)** support:
 
 - `simplestyle`: set to `true` to convert simplestyle-spec styles into KML styles
+
+**Organic Map** style:
+
+*  `organicMapsStyle`: set to `true` to use Organic Map styles. Use the `organicmaps-marker-color`and `organiorganicmaps-icon` properties. Valid values:
+ - red
+ - blue
+ - purple
+ - yellow
+ - pink
+ - brown
+ - green
+ - orange
+ - deeppurple
+ - lightblue
+ - cyan
+ - teal
+ - lime
+ - deeporange
+ - gray
+ - bluegray
 
 ## Development
 

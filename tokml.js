@@ -10,6 +10,7 @@ module.exports = function tokml(geojson, options) {
     name: 'name',
     description: 'description',
     simplestyle: false,
+    organicMapsStyle: false,
     timestamp: 'timestamp'
   }
 
@@ -61,6 +62,19 @@ function feature(options, styleHashesArray) {
       }
     }
 
+    if (options.organicMapsStyle) {
+      var styleHash = hashStyle(_.properties);
+      if (styleHash) {
+          if (geometry.isPoint(_.geometry) && hasOrganicMapsStyle(_.properties)) {
+              if (styleHashesArray.indexOf(styleHash) === -1) {
+                  styleDefinition = organicMapsMarkerStyle(_.properties, styleHash);
+                  styleHashesArray.push(styleHash);
+              }
+              styleReference = tag('styleUrl', '#' + styleHash);
+          }
+      }
+    }
+
     var attributes = {}
     if (_.id) attributes.id = _.id.toString();
     return (
@@ -70,7 +84,7 @@ function feature(options, styleHashesArray) {
         attributes,
         name(_.properties, options) +
           description(_.properties, options) +
-          extendeddata(_.properties) +
+          extendeddata(_.properties, options) +
           timestamp(_.properties, options) +
           geometryString +
           styleReference
@@ -228,8 +242,12 @@ function linearring(_) {
 }
 
 // ## Data
-function extendeddata(_) {
-  return tag('ExtendedData', {}, pairs(_).map(data).join(''))
+function extendeddata(_, options) {
+  if(options.organicMapsStyle)
+    return `<ExtendedData xmlns:mwm='https://omaps.app'><mwm:icon>${_['organicmaps-icon'] || 'None'}</mwm:icon></ExtendedData>`;
+    
+  else 
+    return tag('ExtendedData', pairs(_).map(data).join(''));
 }
 
 function data(_) {
@@ -238,6 +256,24 @@ function data(_) {
     { name: _[0] },
     tag('value', {}, esc(_[1] ? _[1].toString() : ''))
   )
+}
+
+function hasOrganicMapsStyle(_) {
+  return !!(_['organicmaps-marker-color']);
+}
+
+function organicMapsMarkerStyle(_, styleHash) {
+  return tag('Style',
+      tag('IconStyle',
+          tag('Icon',
+              tag('href', organicMapsIconUrl(_)))) +
+      iconSize(_), [['id', styleHash]]);
+}
+
+function organicMapsIconUrl(_) {
+  var color = (_['organicmaps-marker-color'] || 'red');
+
+  return 'https://omaps.app/placemarks/placemark-' + color + '.png';
 }
 
 // ## Marker style
@@ -354,6 +390,7 @@ function hashStyle(_) {
   if (_['fill']) hash = hash + 'f' + _['fill'].replace('#', '')
   if (_['fill-opacity'])
     hash = hash + 'fo' + _['fill-opacity'].toString().replace('.', '')
+  if (_['organicmaps-marker-color']) hash = hash + 'placemark-' + _['organicmaps-marker-color'];
 
   return hash
 }
